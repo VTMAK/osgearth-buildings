@@ -22,6 +22,9 @@
 #include <osg/Geode>
 #include <osg/MatrixTransform>
 
+#include "ExternalModelNode"
+#include <osgEarth/OEAssert>
+
 #define LC "[BuildingCompiler] "
 
 using namespace osgEarth;
@@ -31,13 +34,19 @@ using namespace osgEarth::Symbology;
 
 
 BuildingCompiler::BuildingCompiler(Session* session) :
-_session( session )
+  _session( session )
+  , _filterUsage(FILTER_USAGE_NORMAL)
 {
     _elevationCompiler = new ElevationCompiler( session );
     _flatRoofCompiler = new FlatRoofCompiler( session );
     _gableRoofCompiler = new GableRoofCompiler( session );
     _instancedRoofCompiler = new InstancedRoofCompiler( session );
     _instancedBuildingCompiler = new InstancedBuildingCompiler( session );
+}
+
+void BuildingCompiler::setUsage(FilterUsage usage)
+{
+   _filterUsage = usage;
 }
 
 bool
@@ -68,7 +77,7 @@ BuildingCompiler::compile(const BuildingVector& input,
         }
         else
         {
-            addElevations( output, building, building->getElevations(), output.getWorldToLocal(), readOptions);
+           addElevations( output, building, building->getElevations(), output.getWorldToLocal(), readOptions);
         }
     }
 
@@ -87,16 +96,43 @@ BuildingCompiler::addExternalModel(CompilerOutput&       output,
                                    const osgDB::Options* readOptions,
                                    ProgressCallback*     progress) const
 {
-    // TODO: perhaps disable the image caching for an external model, 
-    //       since it probably won't be shared?
-    osg::ref_ptr<osg::Node> node = building->getExternalModelURI().getNode(readOptions, progress);
-    if ( node.valid() )
-    {
-        osg::MatrixTransform* xform = new osg::MatrixTransform( building->getReferenceFrame() * world2local );
-        xform->addChild( node.get() );
-        output.getExternalModelsGroup()->addChild( xform );
-    }
-    return node.valid();
+   if (_filterUsage == FILTER_USAGE_NORMAL)
+   {
+      // TODO: perhaps disable the image caching for an external model, 
+      //       since it probably won't be shared?
+      osg::ref_ptr<osg::Node> node = building->getExternalModelURI().getNode(readOptions, progress);
+      if (node.valid())
+      {
+         osg::MatrixTransform* xform = new osg::MatrixTransform(building->getReferenceFrame() * world2local);
+         xform->addChild(node.get());
+         output.getExternalModelsGroup()->addChild(xform);
+      }
+      return node.valid();
+   }
+   else
+   {
+      if (output.getExternalModelsGroup()->getNumChildren() == 0)
+      {
+         osg::Group* group = new osg::Group;
+         group->setName("ExternalModelNodeListAttachPoint");
+
+         ExternalModelNodeList* externalModelNodeList = new ExternalModelNodeList();
+         group->setUserData(externalModelNodeList);
+
+         output.getExternalModelsGroup()->addChild(group);
+      }
+
+      ASSERT_PREDICATE(output.getExternalModelsGroup()->getNumChildren() == 1);
+      ExternalModelNodeList* externalModelNodeList =
+         static_cast<ExternalModelNodeList*>(output.getExternalModelsGroup()->getChild(0)->getUserData());
+      ExternalModelNode externalModelNode;
+
+      externalModelNode.xform = building->getReferenceFrame()/* * world2local*/;
+      externalModelNode.externalModelURI = building->getExternalModelURI();
+
+      externalModelNodeList->externalModelNodes.push_back(externalModelNode);
+      return true;
+   } 
 }
 
 bool

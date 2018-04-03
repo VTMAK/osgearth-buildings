@@ -27,6 +27,7 @@
 #include "GableRoofCompiler"
 #include "InstancedRoofCompiler"
 #include "InstancedBuildingCompiler"
+#include "FilterUsage"
 
 #include <osgEarth/Progress>
 #include <osgEarthFeatures/FeatureCursor>
@@ -56,6 +57,7 @@ namespace osgEarth { namespace Buildings
             const osgDB::Options* readOptions,
             ProgressCallback*     progress =0L);
 
+        void setUsage(FilterUsage filterUsage);
     protected:
         virtual ~BuildingCompiler() { }
 
@@ -75,6 +77,7 @@ namespace osgEarth { namespace Buildings
         osg::ref_ptr<FlatRoofCompiler>          _flatRoofCompiler;
         osg::ref_ptr<GableRoofCompiler>         _gableRoofCompiler;
         osg::ref_ptr<InstancedRoofCompiler>     _instancedRoofCompiler;
+        FilterUsage _filterUsage;
     };
 
 } } // namespace

@@ -195,6 +195,11 @@ BuildingLayer::createSceneGraph()
     pager->setPriorityScale   ( options().priorityScale().get() );
     pager->setSceneGraphCallbacks(getSceneGraphCallbacks());
 
+    if (options().filterUsage().isSet())
+    {
+       pager->setFilterUsage(options().filterUsage().get());
+    }
+    
     if (options().enableCancelation().isSet())
     {
         pager->setEnableCancelation(options().enableCancelation().get());

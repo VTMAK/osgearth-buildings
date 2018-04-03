@@ -1,0 +1,25 @@
+#pragma once
+
+#include <osgEarth/URI>
+#include <osg/Matrixd>
+
+namespace osgEarth {
+   namespace Buildings
+   {
+      using namespace osgEarth::Features;
+
+      class ExternalModelNode
+      {
+      public:
+         URI externalModelURI;
+         osg::Matrixd xform;
+      };
+
+      class ExternalModelNodeList : public osg::Referenced
+      {
+      public:
+         std::vector<ExternalModelNode> externalModelNodes;
+      };
+
+   }
+}

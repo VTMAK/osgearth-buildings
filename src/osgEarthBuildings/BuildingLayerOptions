@@ -21,6 +21,7 @@
 
 #include "Common"
 #include "CompilerSettings"
+#include "FilterUsage"
 #include <osgEarth/Layer>
 #include <osgEarthFeatures/FeatureSource>
 #include <osgEarthFeatures/FeatureModelSource>
@@ -79,6 +80,10 @@ namespace osgEarth { namespace Buildings
         optional<bool>& enableCancelation() { return _enableCancelation; }
         const optional<bool>& enableCancelation() const { return _enableCancelation; }
 
+
+        optional<FilterUsage>& filterUsage() { return _filterUsage; }
+        const optional<FilterUsage>& filterUsage() const { return _filterUsage; }
+
     public:
         BuildingLayerOptions( const ConfigOptions& opt =ConfigOptions() ) : VisibleLayerOptions( opt )
         {
@@ -104,6 +109,7 @@ namespace osgEarth { namespace Buildings
             conf.updateIfSet   ("priority_offset",  _priorityOffset);
             conf.updateIfSet   ("priority_scale",   _priorityScale);
             conf.updateIfSet   ("enable_cancelation", _enableCancelation);
+            conf.updateIfSet("filter_usage", _filterUsage);
             return conf;
         }
 
@@ -126,6 +132,8 @@ namespace osgEarth { namespace Buildings
             conf.getIfSet   ("priority_offset",  _priorityOffset);
             conf.getIfSet   ("priority_scale",   _priorityScale);
             conf.getIfSet   ("enable_cancelation", _enableCancelation);
+            conf.getIfSet("filter_usage", "filter_usage_normal", _filterUsage, FILTER_USAGE_NORMAL);
+            conf.getIfSet("filter_usage", "filter_usage_zero_work_callback_based", _filterUsage, FILTER_USAGE_ZERO_WORK_CALLBACK_BASED);
         }
 
         optional<FeatureSourceOptions> _featureSource;
@@ -138,6 +146,7 @@ namespace osgEarth { namespace Buildings
         optional<float> _priorityOffset;
         optional<float> _priorityScale;
         optional<bool> _enableCancelation;
+        optional<FilterUsage> _filterUsage;
     };
 } }
 

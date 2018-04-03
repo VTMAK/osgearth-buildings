@@ -36,6 +36,8 @@ set(LIB_PUBLIC_HEADERS
     Roof
     TerrainClamper
     Zoning
+	ExternalModelNode
+	FilterUsage
 )
 
 set(LIB_COMMON_FILES

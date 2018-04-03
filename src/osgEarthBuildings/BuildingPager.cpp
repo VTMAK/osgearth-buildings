@@ -80,7 +80,8 @@ namespace
 
 BuildingPager::BuildingPager(const Profile* profile) :
 SimplePager( profile ),
-_index     ( 0L )
+_index     ( 0L ),
+_filterUsage(FILTER_USAGE_NORMAL)
 {
     // Replace tiles with higher LODs.
     setAdditive( false );
@@ -116,6 +117,8 @@ BuildingPager::setSession(Session* session)
     if ( session )
     {
         _compiler = new BuildingCompiler(session);
+
+        _compiler->setUsage(_filterUsage);
 
         // Analyze the styles to determine the min and max LODs.
         // Styles are named by LOD.
@@ -182,6 +185,11 @@ void
 BuildingPager::setElevationPool(ElevationPool* pool)
 {
     _elevationPool = pool;
+}
+
+void BuildingPager::setFilterUsage(FilterUsage usage)
+{
+   _filterUsage = usage;
 }
 
 bool
@@ -328,6 +336,8 @@ BuildingPager::createNode(const TileKey& tileKey, ProgressCallback* progress)
 
                     // for indexing, if enabled:
                     output.setCurrentFeature(feature);
+
+                    _compiler->setUsage(_filterUsage);
 
                     if (!_compiler->compile(buildings, output, readOptions.get(), progress))
                     {

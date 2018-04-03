@@ -21,6 +21,7 @@
 
 #include "Common"
 #include "BuildingLayerOptions"
+#include "BuildingCatalog"
 #include <osgEarth/VisibleLayer>
 #include <osgEarthUtil/SimplePager>
 #include <osgEarthFeatures/FeatureSource>
@@ -28,8 +29,6 @@
 
 namespace osgEarth { namespace Buildings 
 {
-    class BuildingCatalog;
-
     using namespace osgEarth;
 
     class OSGEARTHBUILDINGS_EXPORT BuildingLayer : public VisibleLayer

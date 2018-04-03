@@ -23,6 +23,7 @@
 #include "BuildingFactory"
 #include "BuildingCompiler"
 #include "CompilerSettings"
+#include "FilterUsage"
 
 #include <osgEarth/CacheBin>
 #include <osgEarth/StateSetCache>
@@ -62,6 +63,8 @@ namespace osgEarth { namespace Buildings
         /** Elevation pool to use for clamping */
         void setElevationPool(ElevationPool* pool);
 
+        void setFilterUsage(FilterUsage usage);
+
     public: // SimplePager
 
         osg::Node* createNode(const TileKey& key, ProgressCallback* progress);
@@ -83,6 +86,7 @@ namespace osgEarth { namespace Buildings
         osg::ref_ptr<osgDB::ObjectCache>  _artCache;
         Threading::Mutex                  _globalMutex;
         osg::ref_ptr<TextureCache>        _texCache;
+        FilterUsage _filterUsage;
 
         bool cacheReadsEnabled(const osgDB::Options*) const;
         bool cacheWritesEnabled(const osgDB::Options*) const;
