@@ -37,6 +37,7 @@ set(LIB_PUBLIC_HEADERS
     TerrainClamper
     Zoning
 	ExternalModelNode
+	InstancedModelNode
 	FilterUsage
 )
 

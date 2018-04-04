@@ -258,7 +258,8 @@ BuildingPager::createNode(const TileKey& tileKey, ProgressCallback* progress)
     output.setTileKey(tileKey);
     output.setIndex(_index);
     output.setTextureCache(_texCache.get());
-
+    output.setFilterUsage(_filterUsage);
+    
     bool canceled = false;
     bool caching = true;
 

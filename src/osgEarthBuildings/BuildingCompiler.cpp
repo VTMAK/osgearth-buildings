@@ -116,21 +116,21 @@ BuildingCompiler::addExternalModel(CompilerOutput&       output,
          osg::Group* group = new osg::Group;
          group->setName("ExternalModelNodeListAttachPoint");
 
-         ExternalModelNodeList* externalModelNodeList = new ExternalModelNodeList();
+         ExternalModelNode* externalModelNodeList = new ExternalModelNode();
          group->setUserData(externalModelNodeList);
 
          output.getExternalModelsGroup()->addChild(group);
       }
 
       ASSERT_PREDICATE(output.getExternalModelsGroup()->getNumChildren() == 1);
-      ExternalModelNodeList* externalModelNodeList =
-         static_cast<ExternalModelNodeList*>(output.getExternalModelsGroup()->getChild(0)->getUserData());
-      ExternalModelNode externalModelNode;
+      ExternalModelNode* externalModelNode =
+         static_cast<ExternalModelNode*>(output.getExternalModelsGroup()->getChild(0)->getUserData());
+      ExternalModel externalModel;
 
-      externalModelNode.xform = building->getReferenceFrame()/* * world2local*/;
-      externalModelNode.externalModelURI = building->getExternalModelURI();
-
-      externalModelNodeList->externalModelNodes.push_back(externalModelNode);
+      externalModel.modelName = building->getExternalModelURI().full();
+      externalModel.xform = building->getReferenceFrame()/* * world2local*/;
+      
+      externalModelNode->vectorExternalModels.push_back(externalModel);
       return true;
    } 
 }
@@ -144,26 +144,34 @@ BuildingCompiler::addElevations(CompilerOutput&        output,
 {
     if ( !building ) return false;
 
-    // Iterator over each Elevation in this building:
-    for(ElevationVector::const_iterator e = elevations.begin();
-        e != elevations.end();
-        ++e)
+    if (_filterUsage == FILTER_USAGE_NORMAL)
     {
-        const Elevation* elevation = e->get();
-     
-        _elevationCompiler->compile( output, building, elevation, world2local, readOptions);
 
-        if ( elevation->getRoof() )
-        {
-            addRoof( output, building, elevation, world2local, readOptions );
-        }
+       // Iterator over each Elevation in this building:
+       for (ElevationVector::const_iterator e = elevations.begin();
+          e != elevations.end();
+          ++e)
+       {
+          const Elevation* elevation = e->get();
 
-        if ( !elevation->getElevations().empty() )
-        {
-            addElevations( output, building, elevation->getElevations(), world2local, readOptions );
-        }
+          _elevationCompiler->compile(output, building, elevation, world2local, readOptions);
 
-    } // elevations loop
+          if (elevation->getRoof())
+          {
+             addRoof(output, building, elevation, world2local, readOptions);
+          }
+
+          if (!elevation->getElevations().empty())
+          {
+             addElevations(output, building, elevation->getElevations(), world2local, readOptions);
+          }
+
+       } // elevations loop
+    }
+    else
+    {
+
+    }
 
     return true;
 }

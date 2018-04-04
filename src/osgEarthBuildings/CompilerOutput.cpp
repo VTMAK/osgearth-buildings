@@ -17,6 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 #include "CompilerOutput"
+#include "InstancedModelNode"
 #include <osg/LOD>
 #include <osg/MatrixTransform>
 #include <osg/ProxyNode>
@@ -48,7 +49,8 @@ using namespace osgEarth::Buildings;
 CompilerOutput::CompilerOutput() :
 _range( FLT_MAX ),
 _index( 0L ),
-_currentFeature( 0L )
+_currentFeature( 0L ),
+_filterUsage(FILTER_USAGE_NORMAL)
 {
     _externalModelsGroup = new osg::Group();
     _externalModelsGroup->setName(EXTERNALS_ROOT);
@@ -68,6 +70,11 @@ void
 CompilerOutput::addDrawable(osg::Drawable* drawable)
 {
     addDrawable( drawable, "" );
+}
+
+void CompilerOutput::setFilterUsage(FilterUsage usage)
+{
+   _filterUsage = usage;
 }
 
 void
@@ -216,6 +223,143 @@ CompilerOutput::writeToCache(osg::Node* node, const osgDB::Options* writeOptions
     OE_INFO << LC << "Wrote " << _name << " to cache (key = " << cacheKey << ")\n";
 }
 
+void CompilerOutput::addInstancesNormal(osg::MatrixTransform* root, Session* session, const CompilerSettings& settings, const osgDB::Options* readOptions, ProgressCallback*) const
+{
+#ifdef USE_LODS
+   // group to hold all instanced models:
+   osg::LOD* instances = new osg::LOD();
+#else
+   osg::Group* instances = new osg::Group();
+#endif
+   instances->setName(INSTANCES_ROOT);
+
+   // keeps one copy of each instanced model per resource:
+   typedef std::map< ModelResource*, osg::ref_ptr<osg::Node> > ModelNodes;
+   ModelNodes modelNodes;
+
+   for (InstanceMap::const_iterator i = _instances.begin(); i != _instances.end(); ++i)
+   {
+      ModelResource* res = i->first.get();
+
+      // look up or create the node corresponding to this instance:
+      osg::ref_ptr<osg::Node>& modelNode = modelNodes[res];
+      if (!modelNode.valid())
+      {
+         // Instance models use the GLOBAL resource cache, so that an instance model gets
+         // loaded only once. Then it's cloned for each tile. That way the shader generator
+         // will never touch live data. (Note that texture images are memory-cached in the
+         // readOptions.)
+         //
+         // TODO: even though the images are shared, the texture object itself is not.
+         // So it would be great to post-process this node and consolidate its texture
+         // references with those in the global texture cache, thereby reducing the GPU
+         // memory footprint.
+         if (!session->getResourceCache()->cloneOrCreateInstanceNode(res, modelNode, readOptions))
+         {
+            OE_WARN << LC << "Failed to materialize resource " << res->uri()->full() << "\n";
+         }
+      }
+
+      if (modelNode.valid())
+      {
+         modelNode->setName(INSTANCE_MODEL);
+
+         // remove any transforms since these will screw up instancing.
+         osgUtil::Optimizer optimizer;
+         optimizer.optimize(
+            modelNode.get(),
+            //optimizer.INDEX_MESH |
+            optimizer.STATIC_OBJECT_DETECTION | optimizer.FLATTEN_STATIC_TRANSFORMS);
+
+         osg::Group* modelGroup = new osg::Group();
+         modelGroup->setName(INSTANCE_MODEL_GROUP);
+
+         // Build a normal scene graph based on MatrixTransforms, and then convert it 
+         // over to use instancing if it's available.
+         const MatrixVector& mats = i->second;
+         for (MatrixVector::const_iterator m = mats.begin(); m != mats.end(); ++m)
+         {
+            osg::MatrixTransform* modelxform = new osg::MatrixTransform(*m);
+            modelxform->addChild(modelNode.get());
+            modelGroup->addChild(modelxform);
+         }
+
+#ifdef USE_LODS
+         // check for a display bin for this model resource:
+         const CompilerSettings::LODBin* bin = settings.getLODBin(res->tags());
+         float lodScale = bin ? bin->lodScale : 1.0f;
+
+         float maxRange = _range*lodScale;
+
+         // find the LOD range to add it to, or create a new one if neccesary:
+         bool added = false;
+         for (unsigned i = 0; i < instances->getNumChildren() && !added; ++i)
+         {
+            if (instances->getMaxRange(i) == maxRange)
+            {
+               instances->getChild(i)->asGroup()->addChild(modelGroup);
+               added = true;
+            }
+         }
+
+         if (!added)
+         {
+            osg::Group* parent = new osg::Group();
+            instances->addChild(parent, 0.0, maxRange);
+            parent->addChild(modelGroup);
+         }
+#else
+         instances->addChild(modelGroup);
+#endif
+      }
+   }
+
+   // finally add all the instance groups.
+   root->addChild(instances);
+}
+void CompilerOutput::addInstancesZeroWorkCallbackBased(osg::MatrixTransform* root, Session* session, const CompilerSettings& settings, const osgDB::Options* readOptions, ProgressCallback* progress) const
+{
+   osg::Group* instances = new osg::Group();
+
+   InstancedModelNode* instancedModelNode = new InstancedModelNode();
+   instances->setUserData(instancedModelNode);
+
+   for (InstanceMap::const_iterator it = _instances.begin(); it != _instances.end(); ++it)
+   {
+      const URI& uri = it->first->uri().value().full();
+      const MatrixVector& srcMatricees = it->second;
+
+      InstancedModelNode::MatrixdVector& dstMatrices = instancedModelNode->_instances[uri.full()];
+
+      for (int matrixIndex = 0; matrixIndex < srcMatricees.size(); ++matrixIndex)
+      {
+         dstMatrices.push_back(srcMatricees[matrixIndex]);
+      }
+   }
+
+   // finally add all the instance groups.
+   root->addChild(instances);
+}
+
+void CompilerOutput::addInstances(osg::MatrixTransform* root, Session* session, const CompilerSettings& settings, const osgDB::Options* readOptions, ProgressCallback* progress) const
+{
+   // install the model instances, creating one instance group for each model.
+
+   if (_instances.empty())
+   {
+      return;
+   }
+
+   if (_filterUsage==FILTER_USAGE_NORMAL)
+   {
+      addInstancesNormal(root, session, settings, readOptions, progress);
+   }
+   else
+   {
+      addInstancesZeroWorkCallbackBased(root, session, settings, readOptions, progress);
+   }
+}
+
 osg::Node*
 CompilerOutput::createSceneGraph(Session*                session,
                                  const CompilerSettings& settings,
@@ -265,103 +409,8 @@ CompilerOutput::createSceneGraph(Session*                session,
     }
     double optimizeTime = OE_GET_TIMER(optimize);
 
-    
-    // install the model instances, creating one instance group for each model.
     OE_START_TIMER(instances);
-    if (!_instances.empty())
-    {
-#ifdef USE_LODS
-        // group to hold all instanced models:
-        osg::LOD* instances = new osg::LOD();
-#else
-        osg::Group* instances = new osg::Group();
-#endif
-        instances->setName(INSTANCES_ROOT);
-
-        // keeps one copy of each instanced model per resource:
-        typedef std::map< ModelResource*, osg::ref_ptr<osg::Node> > ModelNodes;
-        ModelNodes modelNodes;
-
-        for(InstanceMap::const_iterator i = _instances.begin(); i != _instances.end(); ++i)
-        {
-            ModelResource* res = i->first.get();
-
-            // look up or create the node corresponding to this instance:
-            osg::ref_ptr<osg::Node>& modelNode = modelNodes[res];
-            if (!modelNode.valid())
-            {                
-                // Instance models use the GLOBAL resource cache, so that an instance model gets
-                // loaded only once. Then it's cloned for each tile. That way the shader generator
-                // will never touch live data. (Note that texture images are memory-cached in the
-                // readOptions.)
-                //
-                // TODO: even though the images are shared, the texture object itself is not.
-                // So it would be great to post-process this node and consolidate its texture
-                // references with those in the global texture cache, thereby reducing the GPU
-                // memory footprint.
-                if (!session->getResourceCache()->cloneOrCreateInstanceNode(res, modelNode, readOptions))
-                {
-                    OE_WARN << LC << "Failed to materialize resource " << res->uri()->full() << "\n";
-                }
-            }
-
-            if ( modelNode.valid() )
-            {
-                modelNode->setName(INSTANCE_MODEL);
-
-                // remove any transforms since these will screw up instancing.
-                osgUtil::Optimizer optimizer;
-                optimizer.optimize(
-                    modelNode.get(),
-                    //optimizer.INDEX_MESH |
-                    optimizer.STATIC_OBJECT_DETECTION | optimizer.FLATTEN_STATIC_TRANSFORMS);
-
-                osg::Group* modelGroup = new osg::Group();
-                modelGroup->setName(INSTANCE_MODEL_GROUP);
-
-                // Build a normal scene graph based on MatrixTransforms, and then convert it 
-                // over to use instancing if it's available.
-                const MatrixVector& mats = i->second;
-                for(MatrixVector::const_iterator m = mats.begin(); m != mats.end(); ++m)
-                {
-                    osg::MatrixTransform* modelxform = new osg::MatrixTransform( *m );
-                    modelxform->addChild( modelNode.get() );
-                    modelGroup->addChild( modelxform );
-                }
-
-#ifdef USE_LODS
-                // check for a display bin for this model resource:
-                const CompilerSettings::LODBin* bin = settings.getLODBin( res->tags() );
-                float lodScale = bin ? bin->lodScale : 1.0f;
-
-                float maxRange = _range*lodScale;
-
-                // find the LOD range to add it to, or create a new one if neccesary:
-                bool added = false;
-                for(unsigned i=0; i<instances->getNumChildren() && !added; ++i)
-                {
-                    if (instances->getMaxRange(i) == maxRange)
-                    {
-                        instances->getChild(i)->asGroup()->addChild(modelGroup);
-                        added = true;
-                    }
-                }
-
-                if (!added)
-                {
-                    osg::Group* parent = new osg::Group();
-                    instances->addChild(parent, 0.0, maxRange);
-                    parent->addChild( modelGroup );
-                }
-#else
-                instances->addChild( modelGroup );
-#endif
-            }
-        }
-              
-        // finally add all the instance groups.
-        root->addChild( instances );
-    }
+    addInstances(root, session, settings, readOptions, progress);
     double instanceTime = OE_GET_TIMER(instances);
 
     if ( progress && progress->collectStats() )

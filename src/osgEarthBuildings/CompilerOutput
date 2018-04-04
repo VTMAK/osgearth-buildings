@@ -21,6 +21,7 @@
 
 #include "Common"
 #include "CompilerSettings"
+#include "FilterUsage"
 
 #include <osg/Geode>
 #include <osg/Matrix>
@@ -31,6 +32,11 @@
 #include <osgEarthFeatures/FeatureIndex>
 #include <osgEarthSymbology/ModelResource>
 #include <osgEarthSymbology/ResourceCache>
+
+namespace osg
+{
+   class MatrixTransform;
+}
 
 namespace osgEarth { namespace Buildings 
 {
@@ -122,6 +128,7 @@ namespace osgEarth { namespace Buildings
         /** Run on the result of cretaeSceneGraph or readFromCache to install VPs. */
         void postProcess(osg::Node* node, const CompilerSettings& settings, ProgressCallback* progress) const;
 
+        void setFilterUsage(FilterUsage usage);
     public:
         
         /** Adds a drawable to the output. */
@@ -183,7 +190,13 @@ namespace osgEarth { namespace Buildings
 
         osg::ref_ptr<TextureCache> _texCache;
 
+        FilterUsage _filterUsage;
+
         std::string createCacheKey() const;
+
+        void addInstances(osg::MatrixTransform* root, Session* session, const CompilerSettings& settings, const osgDB::Options* readOptions, ProgressCallback*) const;
+        void addInstancesNormal(osg::MatrixTransform* root, Session* session, const CompilerSettings& settings, const osgDB::Options* readOptions, ProgressCallback*) const;
+        void addInstancesZeroWorkCallbackBased(osg::MatrixTransform* root, Session* session, const CompilerSettings& settings, const osgDB::Options* readOptions, ProgressCallback*) const;
     };
 } }
 

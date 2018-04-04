@@ -1,0 +1,21 @@
+#pragma once
+
+#include <osgEarth/ModelSource>
+
+#include <string>
+#include <vector>
+#include <osg/Matrixd>
+
+namespace osgEarth {
+   namespace Buildings
+   {
+      class InstancedModelNode : public osg::Referenced
+      {
+      public:
+         typedef std::vector<osg::Matrixd> MatrixdVector;
+         typedef std::map< std::string, MatrixdVector > MapModelToMatrixdVector;
+
+         MapModelToMatrixdVector _instances;
+      };
+   }
+}

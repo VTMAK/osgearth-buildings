@@ -31,6 +31,8 @@ namespace osgEarth { namespace Buildings
 {
     using namespace osgEarth;
 
+    class BuildingPager;
+
     class OSGEARTHBUILDINGS_EXPORT BuildingLayer : public VisibleLayer
     {
     public:
@@ -46,6 +48,7 @@ namespace osgEarth { namespace Buildings
         void setFeatureSource(FeatureSource*);
         FeatureSource* getFeatureSource() const { return _featureSource.get(); }
 
+        BuildingPager* pager();
 
     public: // Layer
 

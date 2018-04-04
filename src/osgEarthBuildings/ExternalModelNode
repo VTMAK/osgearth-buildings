@@ -8,17 +8,17 @@ namespace osgEarth {
    {
       using namespace osgEarth::Features;
 
-      class ExternalModelNode
+      class ExternalModel
       {
       public:
-         URI externalModelURI;
+         std::string modelName;
          osg::Matrixd xform;
       };
 
-      class ExternalModelNodeList : public osg::Referenced
+      class ExternalModelNode : public osg::Referenced
       {
       public:
-         std::vector<ExternalModelNode> externalModelNodes;
+         std::vector<ExternalModel> vectorExternalModels;
       };
 
    }
