@@ -73,7 +73,8 @@ BuildingCompiler::compile(const BuildingVector& input,
         }
         else if ( building->getInstancedModelResource() )
         {
-            _instancedBuildingCompiler->compile(building, output, output.getWorldToLocal(), progress);
+           osg::Matrixd _worldToLocal = (_filterUsage == FILTER_USAGE_NORMAL) ? output.getWorldToLocal() : osg::Matrixd::identity();
+           _instancedBuildingCompiler->compile(building, output, _worldToLocal, progress);
         }
         else
         {
@@ -191,7 +192,8 @@ BuildingCompiler::addRoof(CompilerOutput&       output,
         }
         else if ( elevation->getRoof()->getType() == Roof::TYPE_INSTANCED )
         {
-            return _instancedRoofCompiler->compile(output, building, elevation, world2local, readOptions);
+           //osg::Matrixd _worldToLocal = (_filterUsage == FILTER_USAGE_NORMAL) ? world2local : osg::Matrixd::identity();
+           return _instancedRoofCompiler->compile(output, building, elevation, world2local, readOptions);
         }
         else
         {

@@ -6,6 +6,8 @@
 #include <vector>
 #include <osg/Matrixd>
 
+#include <map>
+
 namespace osgEarth {
    namespace Buildings
    {
@@ -13,9 +15,16 @@ namespace osgEarth {
       {
       public:
          typedef std::vector<osg::Matrixd> MatrixdVector;
-         typedef std::map< std::string, MatrixdVector > MapModelToMatrixdVector;
+         struct Instances
+         {
+            MatrixdVector matrices;
+            float minRange;
+            float maxRange;
+         };
+         
+         typedef std::map< std::string, Instances > MapModelToInstances;
 
-         MapModelToMatrixdVector _instances;
+         MapModelToInstances _mapModelToInstances;
       };
    }
 }

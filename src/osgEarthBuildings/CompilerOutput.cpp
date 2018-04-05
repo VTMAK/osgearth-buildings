@@ -326,10 +326,19 @@ void CompilerOutput::addInstancesZeroWorkCallbackBased(osg::MatrixTransform* roo
 
    for (InstanceMap::const_iterator it = _instances.begin(); it != _instances.end(); ++it)
    {
-      const URI& uri = it->first->uri().value().full();
+      const ModelResource* res = it->first;
+      const CompilerSettings::LODBin* bin = settings.getLODBin(res->tags());
+      float lodScale = bin ? bin->lodScale : 1.0f;
+      float maxRange = _range*lodScale;
+
+      const URI& uri = res->uri().value().full();
       const MatrixVector& srcMatricees = it->second;
 
-      InstancedModelNode::MatrixdVector& dstMatrices = instancedModelNode->_instances[uri.full()];
+      InstancedModelNode::Instances& dstInstances = instancedModelNode->_mapModelToInstances[uri.full()];
+      InstancedModelNode::MatrixdVector& dstMatrices = dstInstances.matrices;
+
+      dstInstances.minRange = 0.0f;
+      dstInstances.maxRange = maxRange;
 
       for (int matrixIndex = 0; matrixIndex < srcMatricees.size(); ++matrixIndex)
       {
