@@ -18,6 +18,8 @@
  */
 #include "CompilerOutput"
 #include "InstancedModelNode"
+#include "ElevationsLodNode"
+#include <osgEarth/OEAssert>
 #include <osg/LOD>
 #include <osg/MatrixTransform>
 #include <osg/ProxyNode>
@@ -320,6 +322,7 @@ void CompilerOutput::addInstancesNormal(osg::MatrixTransform* root, Session* ses
 void CompilerOutput::addInstancesZeroWorkCallbackBased(osg::MatrixTransform* root, Session* session, const CompilerSettings& settings, const osgDB::Options* readOptions, ProgressCallback* progress) const
 {
    osg::Group* instances = new osg::Group();
+   instances->setName(INSTANCES_ROOT);
 
    InstancedModelNode* instancedModelNode = new InstancedModelNode();
    instances->setUserData(instancedModelNode);
@@ -380,26 +383,45 @@ CompilerOutput::createSceneGraph(Session*                session,
     // install the master matrix for this graph:
     osg::ref_ptr<osg::MatrixTransform> root = new osg::MatrixTransform( getLocalToWorld() );
 
-    // tagged geodes:
-    if ( !_geodes.empty() )
+    if (_geodes.empty()==false)
     {
-        // The Geode LOD holds each geode in its range.
-        osg::LOD* geodeLOD = new osg::LOD();
-        geodeLOD->setName(GEODES_ROOT);
-        root->addChild( geodeLOD );
+       // The Geode LOD holds each geode in its range.
+       osg::LOD* elevationsLod = new osg::LOD();
+       elevationsLod->setName(GEODES_ROOT);
 
-        const GeoCircle bc = _key.getExtent().computeBoundingGeoCircle();
+       const GeoCircle bc = _key.getExtent().computeBoundingGeoCircle();
 
-        for(TaggedGeodes::const_iterator g = _geodes.begin(); g != _geodes.end(); ++g)
-        {
-            const std::string& tag = g->first;
-            const CompilerSettings::LODBin* bin = settings.getLODBin(tag);
-            //float minRange = bin && bin->minLodScale > 0.0f? g->second->getBound().radius() + _range*bin->minLodScale : 0.0f;
-            //float maxRange = bin ? g->second->getBound().radius() + _range*bin->lodScale : FLT_MAX;
-            float minRange = bin && bin->minLodScale > 0.0f? bc.getRadius() + _range*bin->minLodScale : 0.0f;
-            float maxRange = bin ? bc.getRadius() + _range*bin->lodScale : FLT_MAX;
-            geodeLOD->addChild( g->second.get(), minRange, maxRange );
-        }
+       for (TaggedGeodes::const_iterator g = _geodes.begin(); g != _geodes.end(); ++g)
+       {
+          const std::string& tag = g->first;
+          const CompilerSettings::LODBin* bin = settings.getLODBin(tag);
+          //float minRange = bin && bin->minLodScale > 0.0f? g->second->getBound().radius() + _range*bin->minLodScale : 0.0f;
+          //float maxRange = bin ? g->second->getBound().radius() + _range*bin->lodScale : FLT_MAX;
+          float minRange = bin && bin->minLodScale > 0.0f ? bc.getRadius() + _range*bin->minLodScale : 0.0f;
+          float maxRange = bin ? bc.getRadius() + _range*bin->lodScale : FLT_MAX;
+          elevationsLod->addChild(g->second.get(), minRange, maxRange);
+       }
+
+       if (_filterUsage==FILTER_USAGE_NORMAL)
+       {
+          root->addChild(elevationsLod);
+       }
+       else
+       {
+          osg::Group* elevationsGroup = new osg::Group();
+
+          // because the default merge limit is 10000 and there's no other way to change it
+          osgUtil::Optimizer::MergeGeometryVisitor mergeGeometry;
+          mergeGeometry.setTargetMaximumNumberOfVertices(250000u);
+          elevationsLod->accept(mergeGeometry);
+          
+          ElevationsLodNode* elevationsLodNode = new ElevationsLodNode();
+          elevationsLodNode->_elevationsLOD = elevationsLod;
+          elevationsLodNode->_xform = getLocalToWorld();
+          elevationsGroup->setUserData(elevationsLodNode);
+
+          root->addChild(elevationsGroup);
+       }
     }
 
     if ( _externalModelsGroup->getNumChildren() > 0 )

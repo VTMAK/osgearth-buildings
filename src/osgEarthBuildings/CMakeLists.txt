@@ -38,6 +38,7 @@ set(LIB_PUBLIC_HEADERS
     Zoning
 	ExternalModelNode
 	InstancedModelNode
+	ElevationsLodNode
 	FilterUsage
 )
 

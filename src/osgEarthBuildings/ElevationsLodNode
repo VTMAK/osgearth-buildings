@@ -1,0 +1,16 @@
+#pragma once
+
+#include <osg/LOD>
+#include <map>
+
+namespace osgEarth {
+   namespace Buildings
+   {
+      class ElevationsLodNode : public osg::Referenced
+      {
+      public:
+         osg::ref_ptr<osg::LOD> _elevationsLOD;
+         osg::Matrixd _xform;
+      };
+   }
+}

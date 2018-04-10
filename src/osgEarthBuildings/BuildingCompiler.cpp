@@ -143,38 +143,32 @@ BuildingCompiler::addElevations(CompilerOutput&        output,
                                 const osg::Matrix&     world2local,
                                 const osgDB::Options*  readOptions) const
 {
-    if ( !building ) return false;
+   if (!building) return false;
 
-    if (_filterUsage == FILTER_USAGE_NORMAL)
-    {
 
-       // Iterator over each Elevation in this building:
-       for (ElevationVector::const_iterator e = elevations.begin();
-          e != elevations.end();
-          ++e)
-       {
-          const Elevation* elevation = e->get();
+   // Iterator over each Elevation in this building:
+   for (ElevationVector::const_iterator e = elevations.begin();
+      e != elevations.end();
+      ++e)
+   {
+      const Elevation* elevation = e->get();
 
-          _elevationCompiler->compile(output, building, elevation, world2local, readOptions);
+      _elevationCompiler->compile(output, building, elevation, world2local, readOptions);
 
-          if (elevation->getRoof())
-          {
-             addRoof(output, building, elevation, world2local, readOptions);
-          }
+      if (elevation->getRoof())
+      {
+         addRoof(output, building, elevation, world2local, readOptions);
+      }
 
-          if (!elevation->getElevations().empty())
-          {
-             addElevations(output, building, elevation->getElevations(), world2local, readOptions);
-          }
+      if (!elevation->getElevations().empty())
+      {
+         addElevations(output, building, elevation->getElevations(), world2local, readOptions);
+      }
 
-       } // elevations loop
-    }
-    else
-    {
+   } // elevations loop
 
-    }
 
-    return true;
+   return true;
 }
 
 bool
