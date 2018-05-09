@@ -19,6 +19,7 @@
 #include "BuildingPager"
 #include "Analyzer"
 #include <osgEarth/Registry>
+#include <osgEarth/CullingUtils>
 #include <osgEarthSymbology/Query>
 #include <osgEarthSymbology/StyleSheet>
 #include <osgUtil/Optimizer>
@@ -26,6 +27,8 @@
 #include <osg/Version>
 #include <osg/CullFace>
 #include <osg/Geometry>
+#include <osg/MatrixTransform>
+
 #include <osgDB/WriteFile>
 
 #define LC "[BuildingPager] "
@@ -353,6 +356,26 @@ BuildingPager::createNode(const TileKey& tileKey, ProgressCallback* progress)
                 osg::BoundingSphere tileBound = getBounds(tileKey);
                 output.setRange(tileBound.radius() * getRangeFactor());
                 node = output.createSceneGraph(_session.get(), _compilerSettings, readOptions.get(), progress);
+
+                osg::MatrixTransform * mt = dynamic_cast<osg::MatrixTransform *> (node.get());
+                if (mt)
+                {
+                   osg::ref_ptr<osg::Group> oqn;
+                   if (osgEarth::OcclusionQueryNodeFactory::_occlusionFactory) {
+                      oqn = osgEarth::OcclusionQueryNodeFactory::_occlusionFactory->createQueryNode();
+                   }
+                   if (oqn.get()) 
+                   {
+                      oqn->setName("BuildingPager::oqn");
+                      //oqn.get()->setDebugDisplay(true);
+                      while (mt->getNumChildren()) {
+                         oqn.get()->addChild(mt->getChild(0));
+                         mt->removeChild(mt->getChild(0));
+                      }
+                      mt->addChild(oqn.get());
+                   }
+
+                }
             }
             else
             {
@@ -404,6 +427,7 @@ BuildingPager::createNode(const TileKey& tileKey, ProgressCallback* progress)
     }
     else
     {
+
         return node.release();
     }
 }
