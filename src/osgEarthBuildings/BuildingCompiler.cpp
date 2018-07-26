@@ -47,6 +47,7 @@ BuildingCompiler::BuildingCompiler(Session* session) :
 void BuildingCompiler::setUsage(FilterUsage usage)
 {
    _filterUsage = usage;
+   _flatRoofCompiler->setUsage(_filterUsage);
 }
 
 bool
@@ -182,7 +183,7 @@ BuildingCompiler::addRoof(CompilerOutput&       output,
     {
         if ( elevation->getRoof()->getType() == Roof::TYPE_GABLE )
         {
-            return _gableRoofCompiler->compile(output, building, elevation, world2local, readOptions);
+           return _gableRoofCompiler->compile(output, building, elevation, world2local, readOptions);
         }
         else if ( elevation->getRoof()->getType() == Roof::TYPE_INSTANCED )
         {

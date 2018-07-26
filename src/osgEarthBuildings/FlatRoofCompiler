@@ -22,6 +22,8 @@
 #include "Compiler"
 #include "CompilerOutput"
 #include "Building"
+#include "FilterUsage"
+
 #include <osgEarthFeatures/Session>
 #include <osg/Geode>
 
@@ -35,8 +37,12 @@ namespace osgEarth { namespace Buildings
     class OSGEARTHBUILDINGS_EXPORT FlatRoofCompiler : public Compiler
     {
     public:
-        FlatRoofCompiler(Session* session) : _session(session) { }
+        FlatRoofCompiler(Session* session) : _session(session) , _filterUsage(FILTER_USAGE_NORMAL)
+        {
+           
+        }
 
+        void setUsage(FilterUsage filterUsage);
     public:
         virtual bool compile(
             CompilerOutput&       output,
@@ -47,6 +53,7 @@ namespace osgEarth { namespace Buildings
 
     protected:
         osg::ref_ptr<Session> _session;
+        FilterUsage _filterUsage;
     };
 } }
 

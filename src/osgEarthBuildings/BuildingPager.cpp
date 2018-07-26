@@ -357,10 +357,10 @@ BuildingPager::createNode(const TileKey& tileKey, ProgressCallback* progress)
                 output.setRange(tileBound.radius() * getRangeFactor());
                 node = output.createSceneGraph(_session.get(), _compilerSettings, readOptions.get(), progress);
 
-                /* osg::MatrixTransform * mt = dynamic_cast<osg::MatrixTransform *> (node.get());
+                osg::MatrixTransform * mt = dynamic_cast<osg::MatrixTransform *> (node.get());
                 if (mt)
                 {
-                  osg::ref_ptr<osg::Group> oqn;
+                   osg::ref_ptr<osg::Group> oqn;
                    if (osgEarth::OcclusionQueryNodeFactory::_occlusionFactory) {
                       oqn = osgEarth::OcclusionQueryNodeFactory::_occlusionFactory->createQueryNode();
                    }
@@ -374,9 +374,8 @@ BuildingPager::createNode(const TileKey& tileKey, ProgressCallback* progress)
                       }
                       mt->addChild(oqn.get());
                    }
-                  
-                } 
-                */
+
+                }
             }
             else
             {

@@ -75,6 +75,12 @@ namespace
     }
 }
 
+void
+FlatRoofCompiler::setUsage(FilterUsage filterUsage)
+{
+   _filterUsage = filterUsage;
+}
+
 bool
 FlatRoofCompiler::compile(CompilerOutput&       output,
                           const Building*       building,
@@ -282,14 +288,22 @@ FlatRoofCompiler::compile(CompilerOutput&       output,
             // offset to the bottom of the model's bounding box:
             p.z() = roofZ - bbox.zMin();
 
-            osg::Matrix placement( roof->getParent()->getRotation() * frame * osg::Matrix::translate(p) );
-            output.addInstance( model, placement );
+            if (_filterUsage==FILTER_USAGE_NORMAL)
+            {
+               osg::Matrix placement(roof->getParent()->getRotation() * frame * osg::Matrix::translate(p));
+               output.addInstance(model, placement);
+            }
+            else
+            {
+               osg::Matrix placement(roof->getParent()->getRotation() * osg::Matrix::translate(p));
+               output.addInstance(model, placement * building->getReferenceFrame());
+            }
         }
 
         // draw the model box for debugging purposes.
         if ( s_debug )
         {
-            output.getDebugGroup()->addChild( createModelBoxGeom(modelBox, frame, roofZ) );
+               output.getDebugGroup()->addChild( createModelBoxGeom(modelBox, frame, roofZ) );
         }
     }
 
