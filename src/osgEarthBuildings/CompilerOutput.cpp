@@ -159,6 +159,11 @@ namespace
 osg::Node*
 CompilerOutput::readFromCache(const osgDB::Options* readOptions, ProgressCallback* progress) const
 {
+    // This means that indirect is on. So don't use cache. Indirect cannot handle it
+    if (_filterUsage == FILTER_USAGE_ZERO_WORK_CALLBACK_BASED)
+    {
+        return 0L;;
+    }
     CacheSettings* cacheSettings = CacheSettings::get(readOptions);
 
     if ( !cacheSettings || !cacheSettings->getCacheBin() )
@@ -211,6 +216,11 @@ CompilerOutput::getSkinStateSet(SkinResource* skin, const osgDB::Options* readOp
 void
 CompilerOutput::writeToCache(osg::Node* node, const osgDB::Options* writeOptions, ProgressCallback* progress) const
 {
+    // This means that indirect is on. So don't use cache. Indirect cannot handle it
+    if (_filterUsage==FILTER_USAGE_ZERO_WORK_CALLBACK_BASED)
+    {
+        return;
+    }
     CacheSettings* cacheSettings = CacheSettings::get(writeOptions);
 
     if ( !node || !cacheSettings || !cacheSettings->getCacheBin() )
