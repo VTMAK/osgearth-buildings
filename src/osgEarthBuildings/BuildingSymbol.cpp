@@ -80,7 +80,7 @@ BuildingSymbol::parseSLD(const Config& c, Style& style)
         style.getOrCreate<BuildingSymbol>()->tags() = !c.value().empty() ? StringExpression(c.value()) : *defaults.tags();
     }
     else if ( match(c.key(), "building-model") ) {
-        style.getOrCreate<BuildingSymbol>()->modelURI() = !c.value().empty() ? StringExpression(c.value()) : *defaults.tags();
+        style.getOrCreate<BuildingSymbol>()->modelURI() = !c.value().empty() ? StringExpression(c.value()) : *defaults.modelURI();
     }
     else if ( match(c.key(), "building-library") ) {
         style.getOrCreate<BuildingSymbol>()->library() = !c.value().empty() ? StringExpression(c.value()) : *defaults.library();

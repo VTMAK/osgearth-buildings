@@ -143,6 +143,14 @@ BuildingFactory::create(Feature*               feature,
         if ( modelExpr.isSet() )
         {
             std::string modelStr = feature->eval(modelExpr.mutable_value(), _session.get());
+            //VRV_PATCH
+            //Sometimes the ductape engine returns undefined for the modelStr.
+            // lets set the modelStr to "" and ignore those cases as well
+            if (modelStr == "undefined")
+            {
+               modelStr = "";
+            }
+            //END VRV_PATCH
             if (!modelStr.empty())
             {
                 externalModelURI = URI(modelStr, uriContext);
