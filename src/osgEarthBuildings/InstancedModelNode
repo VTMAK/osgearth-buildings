@@ -11,9 +11,18 @@
 namespace osgEarth {
    namespace Buildings
    {
-      class InstancedModelNode : public osg::Referenced
+      class InstancedModelNode : public osg::Object
       {
       public:
+
+         InstancedModelNode();
+         InstancedModelNode(const InstancedModelNode& rhs, const osg::CopyOp& copyop);
+         InstancedModelNode& operator=(const InstancedModelNode& rhs);
+
+
+         META_Object(osgEarth::Buildings, InstancedModelNode);
+
+
          typedef std::vector<osg::Matrixd> MatrixdVector;
          struct Instances
          {

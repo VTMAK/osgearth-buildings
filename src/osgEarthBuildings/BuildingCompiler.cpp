@@ -127,10 +127,10 @@ BuildingCompiler::addExternalModel(CompilerOutput&       output,
       ASSERT_PREDICATE(output.getExternalModelsGroup()->getNumChildren() == 1);
       ExternalModelNode* externalModelNode =
          static_cast<ExternalModelNode*>(output.getExternalModelsGroup()->getChild(0)->getUserData());
-      ExternalModel externalModel;
+      ExternalModel * externalModel = new ExternalModel();
 
-      externalModel.modelName = building->getExternalModelURI().full();
-      externalModel.xform = building->getReferenceFrame()/* * world2local*/;
+      externalModel->modelName = building->getExternalModelURI().full();
+      externalModel->xform = building->getReferenceFrame()/* * world2local*/;
       
       externalModelNode->vectorExternalModels.push_back(externalModel);
       return true;

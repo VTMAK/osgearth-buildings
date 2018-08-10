@@ -6,11 +6,25 @@
 namespace osgEarth {
    namespace Buildings
    {
-      class ElevationsLodNode : public osg::Referenced
+      class ElevationsLodNode : public osg::Object
       {
       public:
-         osg::ref_ptr<osg::LOD> _elevationsLOD;
-         osg::Matrixd _xform;
+         ElevationsLodNode();
+         ElevationsLodNode(const ElevationsLodNode& rhs, const osg::CopyOp& copyop);
+         ElevationsLodNode& operator=(const ElevationsLodNode& rhs);
+         
+         META_Object(osgEarth::Buildings, ElevationsLodNode);
+
+
+         const osg::LOD * getelevationsLOD() const; 
+         void setelevationsLOD(osg::LOD * lod); 
+
+         const osg::Matrixd & getxform() const { return xform; }
+         void setxform(const osg::Matrixd & mat) { xform = mat; }
+      
+         osg::ref_ptr<osg::LOD> elevationsLOD;
+         osg::Matrixd xform;
       };
    }
 }
+
