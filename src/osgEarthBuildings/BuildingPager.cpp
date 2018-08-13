@@ -31,6 +31,8 @@
 
 #include <osgDB/WriteFile>
 
+#include <osg/ConcurrencyViewerMacros>
+
 #define LC "[BuildingPager] "
 
 using namespace osgEarth::Buildings;
@@ -224,6 +226,7 @@ BuildingPager::createNode(const TileKey& tileKey, ProgressCallback* progress)
         return 0L;
     }
 
+
     // For debugging. This tile is in Seattle.
     //if (tileKey.str() != "14/2625/5725" && tileKey.str() != "13/1312/2862")
     //    return 0L;
@@ -236,6 +239,9 @@ BuildingPager::createNode(const TileKey& tileKey, ProgressCallback* progress)
     
     std::string activityName("Load building tile " + tileKey.str());
     Registry::instance()->startActivity(activityName);
+
+    osg::CVMarkerSeries series("PagingThread");
+    osg::CVSpan UpdateTick(series, 4, activityName.c_str());
 
     // result:
     osg::ref_ptr<osg::Node> node;
