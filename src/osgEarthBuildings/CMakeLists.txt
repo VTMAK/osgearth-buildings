@@ -65,6 +65,9 @@ set(LIB_COMMON_FILES
     Parapet.cpp
     Roof.cpp
     TerrainClamper.cpp
+    ExternalModelNode.cpp
+    InstancedModelNode.cpp
+    ElevationsLodNode.cpp
 )
 
 
