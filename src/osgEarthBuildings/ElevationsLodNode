@@ -1,12 +1,14 @@
 #pragma once
 
+#include "Common"
+
 #include <osg/LOD>
 #include <map>
 
 namespace osgEarth {
    namespace Buildings
    {
-      class ElevationsLodNode : public osg::Object
+      class OSGEARTHBUILDINGS_EXPORT ElevationsLodNode : public osg::Object
       {
       public:
          ElevationsLodNode();

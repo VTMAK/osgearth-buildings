@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Common"
+
 #include <osgEarth/URI>
 #include <osg/Matrixd>
 
@@ -8,7 +10,7 @@ namespace osgEarth {
    {
       using namespace osgEarth::Features;
 
-      class ExternalModel : public osg::Object
+      class OSGEARTHBUILDINGS_EXPORT ExternalModel : public osg::Object
       {
       public:
 
