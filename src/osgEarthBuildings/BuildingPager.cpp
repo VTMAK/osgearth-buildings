@@ -272,10 +272,13 @@ BuildingPager::createNode(const TileKey& tileKey, ProgressCallback* progress)
     bool canceled = false;
     bool caching = true;
 
+    osg::CVMarkerSeries series2("SubloadParentTask");
     // Try to load from the cache.
     if (cacheReadsEnabled(readOptions.get()) && !canceled)
     {
         OE_START_TIMER(readCache);
+
+        osg::CVSpan UpdateTick(series2, 4, "ReadFromCache");
 
         node = output.readFromCache(readOptions.get(), progress);
 
@@ -289,6 +292,7 @@ BuildingPager::createNode(const TileKey& tileKey, ProgressCallback* progress)
 
     if (!node.valid() && !canceled)
     {
+
         // fetch the style for this LOD:
         std::string styleName = Stringify() << tileKey.getLOD();
         const Style* style = _session->styles() ? _session->styles()->getStyle(styleName) : 0L;
@@ -300,7 +304,9 @@ BuildingPager::createNode(const TileKey& tileKey, ProgressCallback* progress)
         osg::ref_ptr<FeatureCursor> cursor = _features->createFeatureCursor(query);
         if (cursor.valid() && cursor->hasMore() && !canceled)
         {
-            osg::ref_ptr<BuildingFactory> factory = new BuildingFactory();
+           osg::CVSpan UpdateTick(series, 4, "buildFromScratch");
+           
+           osg::ref_ptr<BuildingFactory> factory = new BuildingFactory();
 
             factory->setSession(_session.get());
             factory->setCatalog(_catalog.get());
@@ -393,6 +399,7 @@ BuildingPager::createNode(const TileKey& tileKey, ProgressCallback* progress)
         if (node.valid() && !canceled)
         {
             OE_START_TIMER(postProcess);
+            osg::CVSpan UpdateTick(series2, 4, "postProcess");
 
             // apply render symbology, if it exists.
             if (style)
@@ -407,6 +414,8 @@ BuildingPager::createNode(const TileKey& tileKey, ProgressCallback* progress)
         if (node.valid() && cacheWritesEnabled(readOptions.get()) && !canceled)
         {
             OE_START_TIMER(writeCache);
+            
+            osg::CVSpan UpdateTick(series2, 4, "writeToCache");
 
             output.writeToCache(node.get(), readOptions.get(), progress);
 

@@ -429,6 +429,7 @@ CompilerOutput::createSceneGraph(Session*                session,
           elevationsLod->accept(mergeGeometry);
           
           ElevationsLodNode* elevationsLodNode = new ElevationsLodNode();
+          elevationsLodNode->setName("elevationsLodNode");
           elevationsLodNode->elevationsLOD = elevationsLod;
           elevationsLodNode->xform = getLocalToWorld();
 
