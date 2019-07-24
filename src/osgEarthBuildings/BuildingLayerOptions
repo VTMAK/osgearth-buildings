@@ -100,16 +100,15 @@ namespace osgEarth { namespace Buildings
         Config getConfig() const
         {
             Config conf = VisibleLayerOptions::getConfig();
-            conf.updateObjIfSet("features",         _featureSource);
-            conf.updateIfSet   ("building_catalog", _buildingCatalogURI);
-            conf.updateObjIfSet("styles",           _styles);
-            conf.updateIfSet   ("additive_lods",    _additiveLODs);
-            conf.updateObjIfSet("settings",         _settings);
-            conf.updateIfSet   ("create_index",     _createIndex);
-            conf.updateIfSet   ("priority_offset",  _priorityOffset);
-            conf.updateIfSet   ("priority_scale",   _priorityScale);
-            conf.updateIfSet   ("enable_cancelation", _enableCancelation);
-            conf.updateIfSet("filter_usage", _filterUsage);
+            conf.set("features",         _featureSource);
+            conf.set("building_catalog", _buildingCatalogURI);
+            conf.set("styles",           _styles);
+            conf.set("additive_lods",    _additiveLODs);
+            conf.set("settings",         _settings);
+            conf.set("create_index",     _createIndex);
+            conf.set("priority_offset",  _priorityOffset);
+            conf.set("priority_scale",   _priorityScale);
+            conf.set("enable_cancelation", _enableCancelation);
             return conf;
         }
 
@@ -123,17 +122,15 @@ namespace osgEarth { namespace Buildings
     private:
         void fromConfig(const Config& conf)
         {
-            conf.getObjIfSet("features",         _featureSource);
-            conf.getIfSet   ("building_catalog", _buildingCatalogURI);
-            conf.getObjIfSet("styles",           _styles);
-            conf.getIfSet   ("additive_lods",    _additiveLODs);
-            conf.getObjIfSet("settings",         _settings);
-            conf.getIfSet   ("create_index",     _createIndex);
-            conf.getIfSet   ("priority_offset",  _priorityOffset);
-            conf.getIfSet   ("priority_scale",   _priorityScale);
-            conf.getIfSet   ("enable_cancelation", _enableCancelation);
-            conf.getIfSet("filter_usage", "filter_usage_normal", _filterUsage, FILTER_USAGE_NORMAL);
-            conf.getIfSet("filter_usage", "filter_usage_zero_work_callback_based", _filterUsage, FILTER_USAGE_ZERO_WORK_CALLBACK_BASED);
+            conf.get("features",         _featureSource);
+            conf.get("building_catalog", _buildingCatalogURI);
+            conf.get("styles",           _styles);
+            conf.get("additive_lods",    _additiveLODs);
+            conf.get("settings",         _settings);
+            conf.get("create_index",     _createIndex);
+            conf.get("priority_offset",  _priorityOffset);
+            conf.get("priority_scale",   _priorityScale);
+            conf.get("enable_cancelation", _enableCancelation);
         }
 
         optional<FeatureSourceOptions> _featureSource;

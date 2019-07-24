@@ -34,7 +34,6 @@ set(LIB_PUBLIC_HEADERS
     GableRoofCompiler
     Parapet
     Roof
-    TerrainClamper
     Zoning
 	ExternalModelNode
 	InstancedModelNode
@@ -64,10 +63,6 @@ set(LIB_COMMON_FILES
     GableRoofCompiler.cpp
     Parapet.cpp
     Roof.cpp
-    TerrainClamper.cpp
-    ExternalModelNode.cpp
-    InstancedModelNode.cpp
-    ElevationsLodNode.cpp
 )
 
 
