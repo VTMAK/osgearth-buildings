@@ -63,6 +63,9 @@ set(LIB_COMMON_FILES
     GableRoofCompiler.cpp
     Parapet.cpp
     Roof.cpp
+    ExternalModelNode.cpp
+    InstancedModelNode.cpp
+    ElevationsLodNode.cpp
 )
 
 
